@@ -3,7 +3,7 @@ on:
   workflow_run:
     workflows: [test-backend]
     types: 
-      - completed  
+      - completed
 
 jobs:
   # job pour construire publier les images docker 
@@ -11,7 +11,8 @@ jobs:
    #needs: test-backend
    # run only when code is compiling and tests are passing
    runs-on: ubuntu-22.04
-
+    # Lancer les etapes si le worflow précédent n'a pas échoué 
+   if: ${{ github.event.workflow_run.conclusion == 'success' }}
    # Les différentes etapes pour construire et publier les images  
    steps:
      - name: Checkout code
