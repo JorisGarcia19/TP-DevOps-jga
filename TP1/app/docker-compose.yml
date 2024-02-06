@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: ./api
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    networks:
+      - app-network
+      - app-proxy
+    depends_on:
+      - postgresql
+
+  postgresql:
+    build:
+      context: ./postgresql
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    volumes:
+      - postgresql:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  httpd:
+    build:
+      context: ./serveur
+    ports:
+      - "80:80"
+    networks:
+      - app-proxy
+    depends_on:
+      - api
+
+networks:
+  app-network:
+  app-proxy:
+
+volumes:
+  postgresql:
