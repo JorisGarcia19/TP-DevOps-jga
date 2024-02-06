@@ -1,0 +1,30 @@
+name: test-backend
+on:
+  push:
+   # Spécifier les branches où le workflow se déclenchera pour les événements de push
+    branches: 
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  # job: Test Backend
+  test-backend: 
+    # Plateforme d'exécution
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2.5.0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+       # Etape qui exécute Maven pour construire et tester, ainsi qu'intégrer l'analyse SonarCloud
+      - name: Build and test with Maven
+        working-directory: ./TP1/app/api
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=jga-devops_jga-devops -Dsonar.organization=jga-devops -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}  --file ./pom.xml
+
+        
+
