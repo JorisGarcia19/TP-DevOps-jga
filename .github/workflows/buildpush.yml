@@ -1,0 +1,55 @@
+name: buildpush
+on:
+  workflow_run:
+    workflows: [test-backend]
+    types: 
+      - completed  
+
+jobs:
+  # job pour construire publier les images docker 
+  build-and-push-docker-image:
+   needs: test-backend
+   # run only when code is compiling and tests are passing
+   runs-on: ubuntu-22.04
+
+   # Les différentes etapes pour construire et publier les images  
+   steps:
+     - name: Checkout code
+       uses: actions/checkout@v2.5.0
+       
+      # Etape pour la connexion a DockerHub
+     - name: Login to DockerHub
+       run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Etape pour construire l'image de la base de l'api 
+     - name: Build image and push backend
+       uses: docker/build-push-action@v3
+       with:
+         # Chemin relatif où se trouve le code source avec le Dockerfile
+         context: ./TP1/app/api
+         # Crée un tag pour l'image Docker
+         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-api:latest
+         # Publie si le workflow a été déclenché par un push sur la branche main 
+         push: ${{ github.ref == 'refs/heads/main' }}
+
+      # Etape pour construire l'image de la base de données 
+     - name: Build image and push database
+       uses: docker/build-push-action@v3
+       with:
+         # Chemin relatif où se trouve le code source avec le Dockerfile
+         context: ./TP1/app/postgresql
+         # Crée un tag pour l'image Docker
+         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-postgresql:latest
+         # Publie si le workflow a été déclenché par un push sur la branche main 
+         push: ${{ github.ref == 'refs/heads/main' }}
+
+      # Etape pour construire et publier l'image du reverse proxy 
+     - name: Build image and push httpd
+       uses: docker/build-push-action@v3
+       with:
+         # Chemin relatif où se trouve le code source avec le Dockerfile
+         context: ./TP1/app/serveur
+         # Crée un tag pour l'image Docker
+         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-serveur:latest
+         # Publie si le workflow a été déclenché par un push sur la branche main 
+         push: ${{ github.ref == 'refs/heads/main' }}
