@@ -24,7 +24,7 @@ jobs:
        # Etape qui exécute Maven pour construire et tester, ainsi qu'intégrer l'analyse SonarCloud
       - name: Build and test with Maven
         working-directory: ./TP1/app/api
-        run: mvn -B verify sonar:sonar -Dsonar.projectKey=jga-devops_jga-devops -Dsonar.organization=jga-devops -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}  --file ./pom.xml
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=tp-devops-jga_tp-devops-jga -Dsonar.organization=tp-devops-jga -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=${{ secrets.SONAR_TOKEN }}  --file ./pom.xml
 
         
 
