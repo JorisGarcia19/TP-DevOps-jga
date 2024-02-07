@@ -4,5 +4,7 @@
   docker_container:
     name: httpd
     image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
+    ports:
+      - "80:80"
     networks:
       - name: app-proxy
