@@ -3,7 +3,7 @@
 - name: Run postgresql
   docker_container:
     name: postgresql
-    image: jorisgarcia/jga-postgresql:1.0
+    image: {{ DOCKER_NAME }}/tp-devops-postgresql:latest
     networks:
       - name: app-network
     env:

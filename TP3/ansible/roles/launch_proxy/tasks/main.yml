@@ -3,6 +3,6 @@
 - name: Run HTTPD
   docker_container:
     name: httpd
-    image: jorisgarcia/tp-devops-serveur:1.0
+    image: jorisgarcia/tp-devops-serveur:latest
     networks:
       - name: app-proxy

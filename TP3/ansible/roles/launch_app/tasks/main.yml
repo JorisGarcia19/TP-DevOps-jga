@@ -3,7 +3,7 @@
 - name: Run Api
   docker_container:
     name: api
-    image: jorisgarcia/tp-devops-api:1.0
+    image: jorisgarcia/tp-devops-serveur:latest
     networks:
       - name: app-network
       - name: app-proxy
