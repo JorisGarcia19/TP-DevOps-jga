@@ -33,9 +33,16 @@ jobs:
         # Publie si le workflow a été déclenché par un push sur la branche main 
         push: ${{ github.ref == 'refs/heads/main' }}
 
+    - name: Setup SSH Agent
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
     - name: Run Ansible playbook
       run: |
         docker run --rm \
+        -v $SSH_AUTH_SOCK:/ssh-auth-sock \
+        -e SSH_AUTH_SOCK=/ssh-auth-sock \
         -w /ansible \
         -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }} \
         ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-ansible:latest \
