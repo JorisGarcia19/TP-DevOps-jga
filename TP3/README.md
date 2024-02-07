@@ -268,3 +268,67 @@ J'ajoute mes roles dans le playbook des roles :
     - launch_app
     - launch_proxy
 ```
+
+```yml
+# Fichier tasks pour create network
+- name: Create Docker app-network 
+  docker_network:
+    name: "{{ DOCKER_NETWORK }}"
+    state: present
+- name: Create network app-proxy
+  docker_network:
+    name: app-proxy
+    state: present
+```
+
+```yml
+# Fichier tasks pour launch_app
+- name: Run Api
+  docker_container:
+    name: api
+    image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
+    networks:
+      - name: "{{ DOCKER_NETWORK }}"
+      - name: app-proxy
+    env:
+      POSTGRES_DB: "{{ DATABASE_DB }}"
+      POSTGRES_USER: "{{ DATABASE_USER }}"
+      POSTGRES_PASSWORD: "{{ DATABASE_PASSWORD }}"
+```
+
+```yml
+# Fichier tasks pour launch_database
+- name: Run postgresql
+  docker_container:
+    name: postgresql
+    image: "{{ DOCKER_NAME }}/tp-devops-postgresql:latest"
+    networks:
+      - name: "{{ DOCKER_NETWORK }}"
+    env:
+      POSTGRES_DB: "{{ DATABASE_DB }}"
+      POSTGRES_USER: "{{ DATABASE_USER }}"
+      POSTGRES_PASSWORD: "{{ DATABASE_PASSWORD }}"
+```
+
+```yml
+# Fichier tasks du proxy 
+- name: Run HTTPD
+  docker_container:
+    name: httpd
+    image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
+    ports:
+      - "80:80"
+    networks:
+      - name: app-proxy
+```
+
+J'ai crée un fichier qui va contenir les variables d'environnement (`all.yml`).
+
+```yml
+DATABASE_DB: "db"
+DATABASE_USER: "usr"
+DATABASE_PASSWORD: "mdp"
+
+DOCKER_NAME: "jorisgarcia"
+DOCKER_NETWORK: "app-network"
+```

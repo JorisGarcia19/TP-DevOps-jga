@@ -7,4 +7,4 @@
     ports:
       - "80:80"
     networks:
-      - name: app-proxy
+      - name: "{{ DOCKER_NETWORK }}"

@@ -4,7 +4,3 @@
   docker_network:
     name: "{{ DOCKER_NETWORK }}"
     state: present
-- name: Create network app-proxy
-  docker_network:
-    name: app-proxy
-    state: present

@@ -6,7 +6,6 @@
     image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
     networks:
       - name: "{{ DOCKER_NETWORK }}"
-      - name: app-proxy
     env:
       POSTGRES_DB: "{{ DATABASE_DB }}"
       POSTGRES_USER: "{{ DATABASE_USER }}"
