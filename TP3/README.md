@@ -332,3 +332,84 @@ DATABASE_PASSWORD: "mdp"
 DOCKER_NAME: "jorisgarcia"
 DOCKER_NETWORK: "app-network"
 ```
+
+
+
+## Continuous Deployment
+
+Pour déployer en continu l'application, il faut mettre en place un dockerfile et un workflow.
+
+Pour sécuriser les variables, il faut utiliser un `ansible-vault`. Il va permettre de chiffrer les variables de `all.yml`.
+Il faut utiliser cette commande et saisir un mot de passe :
+
+```yml
+ansible-vault encrypt group_vars/all.yml
+```
+
+J'ajoutee donc un répertoire secret sur github `ANSIBLE_VAULT_PASSWORD` qui contient le mot de passe du `ansible-vault`.
+
+Je crée un dockerfile qui va permettre de construire l'image d'ansible :
+
+```yml
+# Utilise python comme image de base pour l'image Docker
+FROM python:3.8-slim
+# Installation de ansible 
+RUN pip install ansible
+# définit le répertoire de travail dans l'image Docker
+WORKDIR /ansible
+# CopieR les fichiers et dossiers dans l'image Docker
+COPY . /ansible
+# Pour exécuter le playbook roles.yml 
+CMD ["ansible-playbook", "-i", "inventories/setup.yml", "roles.yml"]
+```
+
+Je crée un workflow `deploy.yml` qui va permettre de déployer en continu l'application :
+
+```yml
+name: deploy
+
+on:
+  workflow_run:
+    workflows: [buildpush]
+    types: 
+      - completed
+    branches: 
+      - main
+
+jobs:
+  deploy:
+    # Plateforme d'exécution
+    runs-on: ubuntu-22.04
+
+    # Lancer les etapes si le worflow précédent n'a pas échoué 
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2.5.0
+
+    # Etape pour la connexion à DockerHub
+    - name: Login to DockerHub
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build Ansible Docker image
+      uses: docker/build-push-action@v3
+       with:
+         # Chemin relatif où se trouve le code source avec le Dockerfile
+         context: ./TP3/ansible
+         # Crée un tag pour l'image Docker
+         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-ansible:latest
+         # Publie si le workflow a été déclenché par un push sur la branche main 
+         push: ${{ github.ref == 'refs/heads/main' }}
+
+    - name: Run Ansible playbook
+      run: |
+        docker run --rm \
+        -v ${{ github.workspace }}:/workspace \
+        -w /workspace \
+        -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }} \
+        ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-ansible:latest \
+        ansible-playbook -i inventories/setup.yml roles.yml
+
+    - name: Notify deployment success
+      run: echo "Deployment successful!"
+```
