@@ -5,7 +5,7 @@
     name: postgresql
     image: "{{ DOCKER_NAME }}/tp-devops-postgresql:latest"
     networks:
-      - name: {{ DOCKER_NETWORK }}
+      - name: "{{ DOCKER_NETWORK }}"
     env:
       POSTGRES_DB: "{{ DATABASE_DB }}"
       POSTGRES_USER: "{{ DATABASE_USER }}"
