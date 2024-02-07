@@ -8,8 +8,8 @@
 # CMD ["java", "Main"]
 
 # Build
-# Utilise comme image de base maven version 3.9.6
-FROM maven:3.9.6-amazoncorretto-21 AS myapp-build # AS myapp-build # donne un nom à cette étape de build
+# Utilise comme image de base maven version 3.9.6, AS myapp-build  donne un nom à cette étape de build
+FROM maven:3.9.6-amazoncorretto-21 AS myapp-build 
 # Définit une variable d'environnement qui indique le répertoire de l'application dans l'image.
 ENV MYAPP_HOME /opt/myapp
 
