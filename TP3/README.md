@@ -114,3 +114,36 @@ Je crée un playbook dans `TP3/ansible/playbook.yml`.
    - name: Test connection
      ping:
 ```
+
+Je verifie la syntaxe avec :
+
+```shell
+ansible-playbook -i inventories/setup.yml playbook.yml --syntax-check
+```
+
+Pour tester le playbook.yml :
+
+```shell
+ansible-playbook -i inventories/setup.yml playbook.yml
+```
+
+Le resultat :
+
+```shell
+PLAY [all] *************************************************************************************************************************************************
+
+TASK [Test connection] *************************************************************************************************************************************
+ok: [joris.garcia.takima.cloud]
+
+PLAY RECAP *************************************************************************************************************************************************
+joris.garcia.takima.cloud  : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+```
+
+### Advanced Playbook
+
+Je crée donc un nouveau playbook : `docker.yml` qui va installer docker.
+
+```yml
+
+```
