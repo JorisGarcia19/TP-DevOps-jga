@@ -2,8 +2,12 @@
   hosts: all
   become: true
   roles:
-    - install_docker
-    - create_network
-    - launch_database
-    - launch_app
-    - launch_proxy
+    - role: install_docker
+    - role: create_network
+    - role: launch_database
+      vars:
+        database_env: "{{ database_env }}"
+    - role: launch_app
+      vars:
+        database_env: "{{ database_env }}"
+    - role: launch_proxy
