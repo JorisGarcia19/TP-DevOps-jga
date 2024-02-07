@@ -37,7 +37,7 @@ jobs:
       uses: dawidd6/action-ansible-playbook@v2
       with:
         playbook: inventories/setup.yml roles.yml
-        directory: ansible
+        directory: TP3/ansible
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         options: |
           -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }}
