@@ -145,5 +145,89 @@ joris.garcia.takima.cloud  : ok=1    changed=0    unreachable=0    failed=0    s
 Je crée donc un nouveau playbook : `docker.yml` qui va installer docker.
 
 ```yml
+- hosts: all
+  gather_facts: false
+  become: true
 
+# Install Docker
+  tasks:
+  - name: Install device-mapper-persistent-data
+    yum:
+      name: device-mapper-persistent-data
+      state: latest
+
+  - name: Install lvm2
+    yum:
+      name: lvm2
+      state: latest
+
+  - name: add repo docker
+    command:
+      cmd: sudo yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+  - name: Install Docker
+    yum:
+      name: docker-ce
+      state: present
+
+  - name: Install python3
+    yum:
+      name: python3
+      state: present
+
+  - name: Install docker with Python 3
+    pip:
+      name: docker
+      executable: pip3
+    vars:
+      ansible_python_interpreter: /usr/bin/python3
+
+  - name: Make sure Docker is running
+    service: name=docker state=started
+    tags: docker
+```
+
+je verifie la syntaxe :
+
+```shell
+ansible-playbook --syntax-check -i inventories/setup.yml docker.yml
+```
+
+Pour executer le playbook :
+
+```shell
+ansible-playbook  -i inventories/setup.yml docker.yml
+```
+
+Le resultat :
+
+```shell
+PLAY RECAP *************************************************************************************************************************************************
+joris.garcia.takima.cloud  : ok=7    changed=7    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+### Using roles
+
+Pour initialiser un nouveau rôle dans le système de gestion de configuration Ansible.
+
+```shell
+ansible-galaxy init roles/docker
+```
+
+Les répertoires sont créés :
+
+![alt text](./images/image-1.png)
+
+Je garde seulement les répertoires `tasks` et `handlers`
+
+![alt text](./images/image-2.png)
+`
+Je crée un autre playbook `roles.yml` pour tester le role :
+
+```yml
+- name: roles
+  hosts: all
+  become: true
+  roles:
+    - roles/docker
 ```
