@@ -2,7 +2,7 @@
 # tasks file for roles/create_network
 - name: Create Docker app-network 
   docker_network:
-    name: app-network
+    name: {{ DOCKER_NETWORK }}
     state: present
 - name: Create network app-proxy
   docker_network:

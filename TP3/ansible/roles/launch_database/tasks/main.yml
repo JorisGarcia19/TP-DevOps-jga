@@ -3,9 +3,9 @@
 - name: Run postgresql
   docker_container:
     name: postgresql
-    image: {{ DOCKER_NAME }}/tp-devops-postgresql:latest
+    image: "{{ DOCKER_NAME }}/tp-devops-postgresql:latest"
     networks:
-      - name: app-network
+      - name: {{ DOCKER_NETWORK }}
     env:
       POSTGRES_DB: "{{ DATABASE_DB }}"
       POSTGRES_USER: "{{ DATABASE_USER }}"

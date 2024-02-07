@@ -3,3 +3,4 @@ DATABASE_USER: "usr"
 DATABASE_PASSWORD: "mdp"
 
 DOCKER_NAME: "jorisgarcia"
+DOCKER_NETWORK: "app-network"

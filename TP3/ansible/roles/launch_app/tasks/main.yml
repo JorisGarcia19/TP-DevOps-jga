@@ -3,9 +3,9 @@
 - name: Run Api
   docker_container:
     name: api
-    image: jorisgarcia/tp-devops-serveur:latest
+    image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
     networks:
-      - name: app-network
+      - name: {{ DOCKER_NETWORK }}
       - name: app-proxy
     env:
       POSTGRES_DB: "{{ DATABASE_DB }}"
