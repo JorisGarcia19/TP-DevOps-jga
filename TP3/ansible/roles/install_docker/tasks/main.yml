@@ -1,7 +1,5 @@
-- hosts: all
-  gather_facts: false
-  become: true
-
+---
+# tasks file for role docker
 # Install Docker
   tasks:
   - name: Install device-mapper-persistent-data

@@ -245,3 +245,26 @@ Pour tester :
 3-2 Document your playbook
 
 ## Deploy your App
+
+Je crée les autres roles :
+
+```shell
+ansible-galaxy init roles/create_network
+ansible-galaxy init roles/launch_database
+ansible-galaxy init roles/launch_app
+ansible-galaxy init roles/launch_proxy
+```
+
+J'ajoute mes roles dans le playbook des roles :
+
+```yml
+- name: roles
+  hosts: all
+  become: true
+  roles:
+    - install_docker
+    - create_network
+    - launch_database
+    - launch_app
+    - launch_proxy
+```
