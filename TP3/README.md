@@ -1,0 +1,13 @@
+# TP 3
+
+Je crée le fichier 
+
+```yml
+all:
+ vars:
+   ansible_user: centos
+   ansible_ssh_private_key_file: /home/joris/.ssh/id_rsa_ansible
+ children:
+   prod:
+     hosts: joris.garcia.takima.cloud
+```
