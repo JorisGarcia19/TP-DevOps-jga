@@ -25,13 +25,13 @@ jobs:
 
     - name: Build Ansible Docker image
       uses: docker/build-push-action@v3
-       with:
-         # Chemin relatif où se trouve le code source avec le Dockerfile
-         context: ./TP3/ansible
-         # Crée un tag pour l'image Docker
-         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-ansible:latest
-         # Publie si le workflow a été déclenché par un push sur la branche main 
-         push: ${{ github.ref == 'refs/heads/main' }}
+      with:
+        # Chemin relatif où se trouve le code source avec le Dockerfile
+        context: ./TP3/ansible
+        # Crée un tag pour l'image Docker
+        tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-ansible:latest
+        # Publie si le workflow a été déclenché par un push sur la branche main 
+        push: ${{ github.ref == 'refs/heads/main' }}
 
     - name: Run Ansible playbook
       run: |
