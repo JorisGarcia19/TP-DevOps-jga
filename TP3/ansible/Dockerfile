@@ -7,7 +7,7 @@ RUN pip install ansible
 # définit le répertoire de travail dans l'image Docker
 WORKDIR /ansible
 
-# CopieR les fichiers et dossiers dans l'image Docker
+# Copier les fichiers et dossiers dans l'image Docker
 COPY . /ansible
 
 # Pour exécuter le playbook roles.yml 

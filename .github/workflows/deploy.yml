@@ -36,8 +36,7 @@ jobs:
     - name: Run Ansible playbook
       run: |
         docker run --rm \
-        -v ${{ github.workspace }}:/workspace \
-        -w /workspace \
+        -w /ansible \
         -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }} \
         ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-ansible:latest \
         ansible-playbook -i inventories/setup.yml roles.yml
