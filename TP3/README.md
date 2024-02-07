@@ -221,7 +221,7 @@ Les répertoires sont créés :
 Je garde seulement les répertoires `tasks` et `handlers`
 
 ![alt text](./images/image-2.png)
-`
+
 Je crée un autre playbook `roles.yml` pour tester le role :
 
 ```yml
@@ -231,3 +231,17 @@ Je crée un autre playbook `roles.yml` pour tester le role :
   roles:
     - roles/docker
 ```
+
+```shell
+ansible-playbook --syntax-check -i inventories/setup.yml roles.yml 
+```
+
+Pour tester :
+
+```shell
+ ansible-playbook --syntax-check -i inventories/setup.yml roles.yml
+ ```
+
+3-2 Document your playbook
+
+## Deploy your App
