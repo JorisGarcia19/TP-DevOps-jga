@@ -33,10 +33,10 @@ Création d'un réseau :
 docker network create app-network
 ```
 
-Cela va permettre à plusieurs conteneur de communiquer.
+Cela va permettre à plusieurs conteneurs de communiquer.
 
-Relance le conteneur :
-En précisant cette fois si le reseau avec `--network`  
+Je relance le conteneur :
+En précisant cette fois-ci le reseau avec `--network`  
 
 ```yml
 docker run --name postgresql -p 5432:5432 --network app-network -e POSTGRES_PASSWORD="mdp" -d app/postgresql
@@ -72,7 +72,7 @@ Ajout d'un volume pour sauvegarder les données.
 docker run --name postgresql -p 5432:5432 --network app-network  -v ./data:/var/lib/postgresql/data -e POSTGRES_PASSWORD="mdp" -d app/postgresql
 ```
 
-Desormais les informations modifiées sont sauvegardées.
+Désormais les informations modifiées sont sauvegardées.
 
 1-1 :
 
@@ -223,12 +223,12 @@ Recuperer le fichier de config :
 docker cp serveur:/usr/local/apache2/conf/httpd.conf ./httpd.conf
 ```
 
-
-
 J'utilise un serveur apache :
 
 ```yml
 FROM httpd:2.4
+# Copier index.html dans l'image Docker 
+COPY ./index.html /usr/local/apache2/htdocs/
 ```
 
 ### Configuration
@@ -247,7 +247,7 @@ COPY ./httpd.conf /usr/local/apache2/conf/httpd.conf
 
 ## Reverse proxy
 
-Pour configurer le reverse proxy, je modifie le fichier httpd.conf :
+Pour configurer le reverse proxy, je modifie le fichier `httpd.conf` :
 
 ```yml
 ServerName localhost
@@ -260,6 +260,8 @@ LoadModule proxy_module modules/mod_proxy.so
 LoadModule proxy_http_module modules/mod_proxy_http.so
 ```
 
+Ce code permet de configurer un reverse proxy qui écoute sur le port 80 et transfère les requêtes à l'API qui écoute sur le port 8080.
+
 Un reverse proxy permet d'améliorer la sécurité, l'équilibrage de charge, la performance et la fiabilité d'un système informatique. Il agit comme un intermédiaire entre les utilisateurs et les serveurs, permettant ainsi de gérer le trafic entrant.
 
 ## Docker-compose
@@ -267,67 +269,72 @@ Un reverse proxy permet d'améliorer la sécurité, l'équilibrage de charge, la
 Je configure les différents services dans le `docker-compose.yml`.*
 
 ```yml
-version: "3.7"
+version: "3.8"
 
 services:
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile
+    env_file:
+      - ./.env
     environment:
-      - NAME_DB=${DB_NAME}
-      - USER_DB=${DB_USER}
-      - MDP_DB=${DB_PWD}
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     networks:
       - app-network
+      - app-proxy
     depends_on:
       - postgresql
 
   postgresql:
     build:
       context: ./postgresql
-      dockerfile: Dockerfile
+    env_file:
+      - ./.env
     environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PWD}
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     volumes:
-      - ./postgresql/data:/var/lib/postgresql/data
+      - postgresql:/var/lib/postgresql/data
     networks:
       - app-network
 
   httpd:
     build:
       context: ./serveur
-      dockerfile: Dockerfile
     ports:
       - "80:80"
     networks:
-      - app-network
+      - app-proxy
     depends_on:
-      - postgresql
       - api
 
 networks:
   app-network:
+  app-proxy:
+
+volumes:
+  postgresql:
 ```
 
 1.3 Commandes les plus importantes :
 
 - docker-compose up :
-        Démarre les services définis dans le fichier docker-compose.yml. Si le service n'a pas été construit auparavant, docker-compose up le construira automatiquement.
+        Démarre les services définis dans le fichier `docker-compose.yml`. Si le service n'a pas été construit auparavant, docker-compose up le construira automatiquement.
 - docker-compose down :
         Arrête et supprime les ressources créées par docker-compose up.
 
 1.4 Documenter le fichier docker-compose :
 
-- services: correspond aux différents conteneurs
+- ``services``: correspond aux différents conteneurs
 
-- ``build``: est la section qui va permettre la construction des images car elle contient les informations sur le repertoire qui contient le dockerfile (context) et le nom du dockerfile à utiliser (dockerfile)
+- ``build``: est la section qui va permettre la construction des images car elle contient les informations sur le repertoire qui contient le dockerfile (context)
 
 - ``environment``: permet de définir des variables d'environnement dans les conteneurs
 
-- ``volumes``: permet de créer un volume pour sauvegarder des données  
+- ``volumes``: permet de créer un volume pour sauvegarder des données et éviter de perdre des données qui ont été modifiées.
 
 - ``networks``: permet de spécifier les réseaux du conteneur
 
