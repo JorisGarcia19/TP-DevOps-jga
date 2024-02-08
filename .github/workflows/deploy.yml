@@ -19,27 +19,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2.5.0
 
-    # Etape pour la connexion à DockerHub
-    - name: Login to DockerHub
-      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build Ansible Docker image
-      uses: docker/build-push-action@v3
-      with:
-        # Chemin relatif où se trouve le code source avec le Dockerfile
-        context: ./TP3/ansible
-        # Crée un tag pour l'image Docker
-        tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-ansible:latest
-        # Publie si le workflow a été déclenché par un push sur la branche main 
-        push: ${{ github.ref == 'refs/heads/main' }}
-
     - name: Run Ansible playbook
       uses: dawidd6/action-ansible-playbook@v2
       with:
         playbook:  ./TP3/ansible/roles.yml
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        options: |
-          -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        vault_password: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
         inventory: |
           [ALL]
           joris.garcia.takima.cloud
