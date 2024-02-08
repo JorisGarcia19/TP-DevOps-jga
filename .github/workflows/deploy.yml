@@ -1,6 +1,7 @@
 name: deploy
 
 on:
+  # Lancer le workflow si l'action a eu lieu sur la branche main et que le workflow buildpush est terminé
   workflow_run:
     workflows: [buildpush]
     types: 
@@ -16,9 +17,12 @@ jobs:
     # Lancer les etapes si le worflow précédent n'a pas échoué 
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+
+    # Pour récupérer le code du repository.
     - name: Checkout code
       uses: actions/checkout@v2.5.0
 
+    # Exécuter un playbook Ansible
     - name: Run Ansible playbook
       uses: dawidd6/action-ansible-playbook@v2
       with:

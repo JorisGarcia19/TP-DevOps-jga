@@ -16,13 +16,13 @@ all:
      hosts: joris.garcia.takima.cloud
 ```
 
-Je vais dans le repertoire : `ansible` et j'execute cette commande :
+Je vais dans le répertoire : `ansible` et j'exécute cette commande :
 
 ```yml
 ansible all -i inventories/setup.yml -m ping
 ```
 
-Le resultat du ping :
+Le résultat du ping :
 
 ```yml
 joris.garcia.takima.cloud | SUCCESS => {
@@ -42,7 +42,7 @@ Pour demander au serveur la distribution :
 ansible all -i inventories/setup.yml -m setup -a "filter=ansible_distribution*"
 ```
 
-Le resulat :
+Le résulat :
 
 ```shell
 joris.garcia.takima.cloud | SUCCESS => {
@@ -92,7 +92,7 @@ joris.garcia.takima.cloud | CHANGED => {
 ```shell
 all: #  désigne tous les hôtes et groupes définis dans cet inventaire.
  vars: # Définir des variables applicables à tous les hôtes 
-   ansible_user: centos # 'spécifie le nom d'utilisateur à utiliser lors de la connexion aux hôtes. 'centos' est l'utilisateur pour toutes les connexions SSH.
+   ansible_user: centos # spécifie le nom d'utilisateur à utiliser lors de la connexion aux hôtes. 'centos' est l'utilisateur pour toutes les connexions SSH.
    ansible_ssh_private_key_file: /home/joris/.ssh/id_rsa_ansible # indique le chemin d'accès au fichier de clé privée SSH utilisé pour se connecter aux hôtes.
  children: # permet de définir des groupes d'hôtes.
    prod: # est un groupe d'hôtes
@@ -115,7 +115,7 @@ Je crée un playbook dans `TP3/ansible/playbook.yml`.
      ping:
 ```
 
-Je verifie la syntaxe avec :
+Je vérifie la syntaxe avec :
 
 ```shell
 ansible-playbook -i inventories/setup.yml playbook.yml --syntax-check
@@ -187,13 +187,13 @@ Je crée donc un nouveau playbook : `docker.yml` qui va installer docker.
     tags: docker
 ```
 
-je verifie la syntaxe :
+je vérifie la syntaxe :
 
 ```shell
 ansible-playbook --syntax-check -i inventories/setup.yml docker.yml
 ```
 
-Pour executer le playbook :
+Pour exécuter le playbook :
 
 ```shell
 ansible-playbook  -i inventories/setup.yml docker.yml
@@ -208,7 +208,7 @@ joris.garcia.takima.cloud  : ok=7    changed=7    unreachable=0    failed=0    s
 
 ### Using roles
 
-Pour initialiser un nouveau rôle dans le système de gestion de configuration Ansible.
+Pour initialiser un nouveau rôle (`docker`) dans le système de gestion de configuration Ansible :
 
 ```shell
 ansible-galaxy init roles/docker
@@ -218,33 +218,85 @@ Les répertoires sont créés :
 
 ![alt text](./images/image-1.png)
 
-Je garde seulement les répertoires `tasks` et `handlers`
+Je garde seulement le répertoire `tasks` et `handlers`.
 
 ![alt text](./images/image-2.png)
 
 Je crée un autre playbook `roles.yml` pour tester le role :
 
 ```yml
+# Nom du playbook
 - name: roles
+  # Spécifie que ce playbook s'applique à tous les hôtes
   hosts: all
+  # Active les privilèges d'administration
   become: true
+  # liste des rôles Ansible à appliquer
   roles:
     - roles/docker
 ```
+
+Pour vérifier la syntaxe du playbook.
 
 ```shell
 ansible-playbook --syntax-check -i inventories/setup.yml roles.yml 
 ```
 
-Pour tester :
+Pour lancer le playbook :
 
 ```shell
- ansible-playbook --syntax-check -i inventories/setup.yml roles.yml
+ ansible-playbook  -i inventories/setup.yml roles.yml
  ```
 
-3-2 Document your playbook
+Je supprime le playbook `docker.yml` pour mettre son contenu dans le fichier `main.yml` du repertoire `tasks` du role docker.
+
+En déclarant le role docker dans le playbook `role.yml` et mettant les commandes pour installer docker dans `tasks`, le playbook `docker.yml` devient alors inutiles.
 
 ## Deploy your App
+
+```yml
+# Fichier tasks pour install_docker
+# Installe le paquet nécessaire pour la gestion des volumes logiques
+- name: Install device-mapper-persistent-data
+  yum:
+    name: device-mapper-persistent-data
+    state: latest
+# Installe lvm2, nécessaire pour la gestion des volumes logiques
+- name: Install lvm2
+  yum:
+    name: lvm2
+    state: latest
+
+# Ajoute le dépôt officiel de Docker pour CentOS
+- name: add repo docker
+  command:
+    cmd: sudo yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+
+# Installe Docker Community Edition
+- name: Install Docker
+  yum:
+    name: docker-ce
+    state: present
+
+# Installe Python 3
+- name: Install python3
+  yum:
+    name: python3
+    state: present
+
+ # Installe le module Docker pour Python pour permettre la gestion de Docker via des scripts Python
+- name: Install docker with Python 3
+  pip:
+    name: docker
+    executable: pip3
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+# Assure que le service Docker est démarré et actif
+- name: Make sure Docker is running
+  service: name=docker state=started
+  tags: docker
+```
 
 Je crée les autres roles :
 
@@ -255,29 +307,31 @@ ansible-galaxy init roles/launch_app
 ansible-galaxy init roles/launch_proxy
 ```
 
-J'ajoute mes roles dans le playbook des roles :
+J'ajoute mes roles dans le playbook des roles `roles.yml` :
 
 ```yml
 - name: roles
   hosts: all
   become: true
+  vars_files:
+    - group_vars/all.yml
   roles:
-    - install_docker
-    - create_network
-    - launch_database
-    - launch_app
-    - launch_proxy
+    - role: install_docker
+    - role: create_network
+    - role: launch_database
+    - role: launch_app
+    - role: launch_proxy
+
 ```
 
+Je configure les tâches de mes roles :
+
 ```yml
-# Fichier tasks pour create network
+# Fichier tasks pour create_network
 - name: Create Docker app-network 
   docker_network:
+    # Créer le réseau s'il n'existe pas 
     name: "{{ DOCKER_NETWORK }}"
-    state: present
-- name: Create network app-proxy
-  docker_network:
-    name: app-proxy
     state: present
 ```
 
@@ -285,25 +339,34 @@ J'ajoute mes roles dans le playbook des roles :
 # Fichier tasks pour launch_app
 - name: Run Api
   docker_container:
+    # Définition du nom du conteneur Docker 
     name: api
-    image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
+    # Spécification de l'image Docker à utiliser
+    image: "{{ DOCKER_NAME }}/tp-devops-api:1.0"
+    # Connecte le conteneur à un réseau Docker
     networks:
       - name: "{{ DOCKER_NETWORK }}"
-      - name: app-proxy
+    # Spécification des variables d'environnement
     env:
       POSTGRES_DB: "{{ DATABASE_DB }}"
       POSTGRES_USER: "{{ DATABASE_USER }}"
       POSTGRES_PASSWORD: "{{ DATABASE_PASSWORD }}"
+      DOCKER_NAME_POSTGRESQL: "{{ DOCKER_NAME_POSTGRESQL }}"
+      POSTGRESQL_PORT: "{{ POSTGRESQL_PORT }}"
 ```
 
 ```yml
 # Fichier tasks pour launch_database
 - name: Run postgresql
   docker_container:
-    name: postgresql
+    # Définition du nom du conteneur Docker 
+    name: "{{ DOCKER_NAME_POSTGRESQL }}"
+    # Spécification de l'image Docker à utiliser
     image: "{{ DOCKER_NAME }}/tp-devops-postgresql:latest"
+    # Connecte le conteneur à un réseau Docker
     networks:
       - name: "{{ DOCKER_NETWORK }}"
+    # Spécification des variables d'environnement
     env:
       POSTGRES_DB: "{{ DATABASE_DB }}"
       POSTGRES_USER: "{{ DATABASE_USER }}"
@@ -314,12 +377,16 @@ J'ajoute mes roles dans le playbook des roles :
 # Fichier tasks du proxy 
 - name: Run HTTPD
   docker_container:
+    # Définition du nom du conteneur Docker 
     name: httpd
+    # Spécification de l'image Docker à utiliser
     image: "{{ DOCKER_NAME }}/tp-devops-serveur:latest"
+    # Mappe le port 80 du conteneur sur le port 80 de l'hôte, permettant l'accès au service HTTPD depuis l'extérieur
     ports:
       - "80:80"
+    # Connecte le conteneur à un réseau Docker
     networks:
-      - name: app-proxy
+      - name: "{{ DOCKER_NETWORK }}"
 ```
 
 J'ai crée un fichier qui va contenir les variables d'environnement (`all.yml`).
@@ -333,11 +400,9 @@ DOCKER_NAME: "jorisgarcia"
 DOCKER_NETWORK: "app-network"
 ```
 
-
-
 ## Continuous Deployment
 
-Pour déployer en continu l'application, il faut mettre en place un dockerfile et un workflow.
+Pour déployer en continu l'application, il faut mettre en place un nouveau workflow : `deploy.yml`.
 
 Pour sécuriser les variables, il faut utiliser un `ansible-vault`. Il va permettre de chiffrer les variables de `all.yml`.
 Il faut utiliser cette commande et saisir un mot de passe :
@@ -346,22 +411,28 @@ Il faut utiliser cette commande et saisir un mot de passe :
 ansible-vault encrypt group_vars/all.yml
 ```
 
-J'ajoutee donc un répertoire secret sur github `ANSIBLE_VAULT_PASSWORD` qui contient le mot de passe du `ansible-vault`.
-
-Je crée un dockerfile qui va permettre de construire l'image d'ansible :
+Le resultat :
 
 ```yml
-# Utilise python comme image de base pour l'image Docker
-FROM python:3.8-slim
-# Installation de ansible 
-RUN pip install ansible
-# définit le répertoire de travail dans l'image Docker
-WORKDIR /ansible
-# CopieR les fichiers et dossiers dans l'image Docker
-COPY . /ansible
-# Pour exécuter le playbook roles.yml 
-CMD ["ansible-playbook", "-i", "inventories/setup.yml", "roles.yml"]
+$ANSIBLE_VAULT;1.1;AES256
+37353765613339646435656634346563613836376562356332393562623939356130336266646234
+3166303935313764653065653530393832666432353566610a366466616534316437396564373866
+63386334663734313661383862316432636636323636613466623934353665326538666339613531
+6636356263306163300a366237323230316666303435643531613531323639626132626239303634
+61383836366232653230353030346362396165653736323238633961393861333239356534646562
+30393835346539303338613638373537653764626236353432333334316235323861323138303833
+33316639356461343432383632396431333530363736666465633133336264633435303131656636
+61333464373232346135366465663538636136643761353534306137386131343065376532363239
+33343935396630356663373363376239353665303837616564643365653935336366643035343132
+61373262626136343632393961623566613763363463326465323637303265326331626632356166
+64376132333134356536663039313966306164393261346362373766666266363061323035333735
+66613736373065653561626564333961346661633063333139623862346262623533383063373830
+65353963636132613362343466343237626265386138613634633261616364323866
 ```
+
+J'ajoutee donc un répertoire secret sur github `ANSIBLE_VAULT_PASSWORD` qui contient le mot de passe du `ansible-vault`.
+
+Je stocke également dans un répertoire secret la clé ssh et l'utilisateur d'ansible : `SSH_PRIVATE_KEY`, `ANSIBLE_USER`.
 
 Je crée un workflow `deploy.yml` qui va permettre de déployer en continu l'application :
 
@@ -369,6 +440,7 @@ Je crée un workflow `deploy.yml` qui va permettre de déployer en continu l'app
 name: deploy
 
 on:
+  # Lancer le workflow si l'action a eu lieu sur la branche main et que le workflow buildpush est terminé
   workflow_run:
     workflows: [buildpush]
     types: 
@@ -384,31 +456,28 @@ jobs:
     # Lancer les etapes si le worflow précédent n'a pas échoué 
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+
+    # Pour récupérer le code du repository.
     - name: Checkout code
       uses: actions/checkout@v2.5.0
 
-    # Etape pour la connexion à DockerHub
-    - name: Login to DockerHub
-      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build Ansible Docker image
-      uses: docker/build-push-action@v3
-       with:
-         # Chemin relatif où se trouve le code source avec le Dockerfile
-         context: ./TP3/ansible
-         # Crée un tag pour l'image Docker
-         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-ansible:latest
-         # Publie si le workflow a été déclenché par un push sur la branche main 
-         push: ${{ github.ref == 'refs/heads/main' }}
-
+    # Exécuter un playbook Ansible
     - name: Run Ansible playbook
-      run: |
-        docker run --rm \
-        -v ${{ github.workspace }}:/workspace \
-        -w /workspace \
-        -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }} \
-        ${{ secrets.DOCKERHUB_USERNAME }}/tp-devops-ansible:latest \
-        ansible-playbook -i inventories/setup.yml roles.yml
+      uses: dawidd6/action-ansible-playbook@v2
+      with:
+        # Spécification du chemin vers le playbook à exécuter
+        playbook:  ./TP3/ansible/roles.yml
+        # Spécification de la clé SSH privée stockée dans les secrets GitHub pour l'authentification
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        # Spécification du mot de passe du coffre pour déchiffrer les variables sécurisées
+        vault_password: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        # Définition de l'inventaire avec un groupe 'all' et l'adresse d'hôte
+        inventory: |
+          [all]
+          joris.garcia.takima.cloud
+        # Spécification de l'utilisateur Ansible pour la connexion SSH
+        options: |
+          -u${{secrets.ANSIBLE_USER}}
 
     - name: Notify deployment success
       run: echo "Deployment successful!"
