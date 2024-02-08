@@ -2,7 +2,7 @@
 # tasks file for roles/launch_database
 - name: Run postgresql
   docker_container:
-    name: postgresql
+    name: ${{ DOCKER_NAME_POSTGRESQL }}
     image: "{{ DOCKER_NAME }}/tp-devops-postgresql:latest"
     networks:
       - name: "{{ DOCKER_NETWORK }}"
