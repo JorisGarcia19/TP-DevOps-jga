@@ -1,8 +1,8 @@
 - name: roles
   hosts: all
   become: true
-  vars:
-   - ./group_vars/all.yml
+  vars_files:
+    - ./group_vars/all.yml
   roles:
     - role: install_docker
     - role: create_network
