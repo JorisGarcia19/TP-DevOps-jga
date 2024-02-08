@@ -41,6 +41,9 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         options: |
           -e ANSIBLE_VAULT_PASSWORD=${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+        inventory: |
+          [ALL]
+          joris.garcia.takima.cloud
 
     - name: Notify deployment success
       run: echo "Deployment successful!"
