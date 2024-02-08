@@ -3,6 +3,7 @@
   become: true
   vars_files:
     - group_vars/all.yml
+  gather: false
   roles:
     - role: install_docker
     - role: create_network
