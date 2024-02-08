@@ -29,7 +29,7 @@ jobs:
          # Chemin relatif où se trouve le code source avec le Dockerfile
          context: ./TP1/app/api
          # Crée un tag pour l'image Docker
-         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-api:latest
+         tags:  ${{secrets.DOCKERHUB_USERNAME}}/tp-devops-api:1.0
          # Publie si le workflow a été déclenché par un push sur la branche main 
          push: ${{ github.ref == 'refs/heads/main' }}
 

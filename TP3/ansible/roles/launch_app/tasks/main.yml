@@ -3,7 +3,7 @@
 - name: Run Api
   docker_container:
     name: api
-    image: "{{ DOCKER_NAME }}/tp-devops-api:latest"
+    image: "{{ DOCKER_NAME }}/tp-devops-api:1.0"
     networks:
       - name: "{{ DOCKER_NETWORK }}"
     env:
